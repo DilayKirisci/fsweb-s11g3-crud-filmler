@@ -1,69 +1,89 @@
 import React, { useEffect, useState } from "react";
 
-import { Route, Switch, Redirect } from "react-router-dom";
-import MovieList from './components/MovieList';
-import Movie from './components/Movie';
+import { Route, Switch, Redirect, useHistory } from "react-router-dom";
+import MovieList from "./components/MovieList";
+import Movie from "./components/Movie";
 
-import MovieHeader from './components/MovieHeader';
+import MovieHeader from "./components/MovieHeader";
+import EditMovieForm from "./components/EditMovieForm";
+import AddMovieForm from "./components/AddMovieForm";
 
-import FavoriteMovieList from './components/FavoriteMovieList';
+import FavoriteMovieList from "./components/FavoriteMovieList";
 
-import axios from 'axios';
+import axios from "axios";
 
 const App = (props) => {
-  const [movies, setMovies] = useState([]);
-  const [favoriteMovies, setFavoriteMovies] = useState([]);
+	const [movies, setMovies] = useState([]);
+	const [favoriteMovies, setFavoriteMovies] = useState([]);
 
-  useEffect(() => {
-    axios.get('http://localhost:9000/api/movies')
-      .then(res => {
-        setMovies(res.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }, []);
+	const history = useHistory();
 
-  const deleteMovie = (id) => {
-  }
+	useEffect(() => {
+		axios
+			.get("http://localhost:9000/api/movies")
+			.then((res) => {
+				setMovies(res.data);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}, []);
 
-  const addToFavorites = (movie) => {
+	const deleteMovie = (id) => {
+		axios
+			.delete("http://localhost:9000/api/movies/" + id)
+			.then((res) => {
+				const updatedMovies = movies.filter((m) => m.id !== id);
+				setMovies(updatedMovies);
+				console.log(movies);
+				history.push("/movies");
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	};
 
-  }
+	const addToFavorites = (movie) => {};
 
-  return (
-    <div>
-      <nav className="bg-zinc-800 px-6 py-3">
-        <h1 className="text-xl text-white">HTTP / CRUD Film Projesi</h1>
-      </nav>
+	return (
+		<div>
+			<nav className="bg-zinc-800 px-6 py-3">
+				<h1 className="text-xl text-white">HTTP / CRUD Film Projesi</h1>
+			</nav>
 
-      <div className="max-w-4xl mx-auto px-3 pb-4">
-        <MovieHeader />
-        <div className="flex flex-col sm:flex-row gap-4">
-          <FavoriteMovieList favoriteMovies={favoriteMovies} />
+			<div className="max-w-4xl mx-auto px-3 pb-4">
+				<MovieHeader />
+				<div className="flex flex-col sm:flex-row gap-4">
+					<FavoriteMovieList favoriteMovies={favoriteMovies} />
 
-          <Switch>
-            <Route path="/movies/edit/:id">
-            </Route>
+					<Switch>
+						<Route path="/movies/edit/:id">
+							<EditMovieForm />
+						</Route>
 
-            <Route path="/movies/:id">
-              <Movie />
-            </Route>
+						<Route path="/movies/add">
+							<AddMovieForm
+								setMovies={setMovies}
+								addToFavorites={addToFavorites}
+							/>
+						</Route>
 
-            <Route path="/movies">
-              <MovieList movies={movies} />
-            </Route>
+						<Route path="/movies/:id">
+							<Movie deleteMovie={deleteMovie} />
+						</Route>
 
-            <Route path="/">
-              <Redirect to="/movies" />
-            </Route>
-          </Switch>
-        </div>
-      </div>
-    </div>
-  );
+						<Route path="/movies">
+							<MovieList movies={movies} />
+						</Route>
+
+						<Route path="/">
+							<Redirect to="/movies" />
+						</Route>
+					</Switch>
+				</div>
+			</div>
+		</div>
+	);
 };
 
-
 export default App;
-
